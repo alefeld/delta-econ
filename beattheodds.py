@@ -46,7 +46,7 @@ for player in players:
     for attribute in player['attributes']:
         attributes[attribute['name']] = attribute['value']
     avg_batting = statistics.mean([attributes[attribute] for attribute in ['Sight','Thwack','Ferocity']])
-    avg_running = statistics.mean([attributes[attribute] for attribute in ['Dodge','Hustle','Ferocity']])
+    avg_running = statistics.mean([attributes[attribute] for attribute in ['Dodge','Hustle','Stealth']])
     avg_defense = statistics.mean([attributes[attribute] for attribute in ['Magnet','Reach','Reflex']])
     avg_pitching = statistics.mean([attributes[attribute] for attribute in ['Control','Stuff','Guile']])
     avg_vibes = statistics.mean([attributes[attribute] for attribute in ['Drama','Survive','Thrive']])
@@ -103,7 +103,6 @@ while more_teams:
                 player_id = player['id']
                 if player['rosterSlots'][0]['active']:
                     if player['rosterSlots'][0]['location'] == 'LINEUP':
-                        print(player)
                         lineup_batting.append(playerratings[player_id]['batting'])
                         lineup_running.append(playerratings[player_id]['running'])
                         lineup_defense.append(playerratings[player_id]['defense'])
