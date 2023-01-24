@@ -1,3 +1,4 @@
+import argparse
 import collections
 import json
 import requests
@@ -5,13 +6,34 @@ import statistics
 
 import gspread
 
-spreadsheet_id = '1gWt4dGGDhxZtSNDXnwXDmAB79sp4LyGhIq2L5SKEBU0'
+spreadsheet_ids = {
+    1: '1gWt4dGGDhxZtSNDXnwXDmAB79sp4LyGhIq2L5SKEBU0',
+    2: '1Qj4B0DAlwXmrVZSNXm5lyfgWybfrIb5km4oN6aBCt1c',
+}
+
+season_ids = {
+    1: 'cd1b6714-f4de-4dfc-a030-851b3459d8d1',
+    2: '7af53acf-1fb9-40e8-96c7-ab8308a353f9',
+}
+
+timestamps_start = {
+    1: '2023-01-08T10:00:00Z',
+    2: '2023-01-22T17:00:00Z',
+}
+
+# Set up arguments
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument('season',
+                            type = int,
+                            help = "Season number to process (1-indexed).")
+args = arg_parser.parse_args()
 
 # Connect to spreadsheet
 credentials = gspread.service_account()
-worksheet = credentials.open_by_key(spreadsheet_id).worksheet('Bet Data')
+worksheet = credentials.open_by_key(spreadsheet_ids[args.season]).worksheet('Bet Data')
 
 # Get player stars
+# FIXME assumes their current attributes are their historical attributes
 print("Getting player stars...")
 playerratings = collections.defaultdict(dict)
 response = requests.get('https://api2.sibr.dev/mirror/players')
@@ -38,8 +60,8 @@ for player in players:
 # Get records and calculate team ratings
 print("Getting team records and ratings...")
 more_teams = True
-url_base = 'https://api2.sibr.dev/chronicler/v0/versions?kind=team&order=asc'
-url = url_base
+url_base = f'https://api2.sibr.dev/chronicler/v0/versions?kind=team&order=desc'
+url = url_base + f'&after={timestamps_start[args.season]}'
 records = collections.defaultdict(dict)
 teamratings = collections.defaultdict(lambda: collections.defaultdict(dict))
 timestamp_last = ''
@@ -51,11 +73,16 @@ while more_teams:
 
     # Loop over each object
     for team in teams:
+
         n_teams += 1
         timestamp_last = team['valid_from']
         # Get team data
         teamdata = team['data']
         if teamdata['activeTeam']:
+            # Unfortnately there's no way to request a specific season, so this will have to do
+            if team['data']['standings'][0]['seasonId'] != season_ids[args.season]:
+                continue
+
             teamid = teamdata['id']
             wins = teamdata['standings'][0]['wins']
             losses = teamdata['standings'][0]['losses']
@@ -76,6 +103,7 @@ while more_teams:
                 player_id = player['id']
                 if player['rosterSlots'][0]['active']:
                     if player['rosterSlots'][0]['location'] == 'LINEUP':
+                        print(player)
                         lineup_batting.append(playerratings[player_id]['batting'])
                         lineup_running.append(playerratings[player_id]['running'])
                         lineup_defense.append(playerratings[player_id]['defense'])
@@ -102,8 +130,8 @@ print("Getting game odds and winners...")
 n_games = 0
 more_games = True
 timestamp_last = ''
-url_base = 'https://api2.sibr.dev/chronicler/v0/versions?kind=game_bet_data&order=asc'
-url = url_base
+url_base = f'https://api2.sibr.dev/chronicler/v0/versions?kind=game_bet_data&order=asc'
+url = url_base + f'&after={timestamps_start[args.season]}'
 sheet_data = []
 gameids_processed = []
 while more_games:
