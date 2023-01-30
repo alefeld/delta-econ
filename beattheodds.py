@@ -39,11 +39,14 @@ url = f'https://api2.sibr.dev/chronicler/v0/entities?kind=game'
 data = json.loads(requests.get(url).content)
 games = data['items']
 games_start = {}
+games_day = {}
 for game in games:
     if game['data']['seasonId'] == season_ids[args.season]:
         # game_datetime = datetime.datetime.strptime(game['data']['startTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
         game_datetime = game['data']['startTime']
         games_start[game['data']['day']+1] = game_datetime
+        game_id = game['entity_id']
+        games_day[game_id] = game['data']['day']+1
 
 # Get player stars
 print("Getting Players...")
@@ -89,7 +92,7 @@ while more_players:
 # Get records and calculate team ratings
 # Be clever... sort DESCENDING and save by day.
 # Therefore each day will be saved with data for the very end of the previous game.
-print("Getting team records and calculate ratings from players...")
+print("Getting team records and calculating ratings from players...")
 more_teams = True
 url_base = f'https://api2.sibr.dev/chronicler/v0/versions?kind=team&order=desc&after={timestamps_start[args.season]}'
 url = url_base
@@ -191,14 +194,20 @@ while more_games:
         away_wins = gamedata['awayTeamInfo']['wins']
         away_losses = gamedata['awayTeamInfo']['losses']
 
-        day = home_wins + home_losses - 1
-
         # Don't process a game if we already processed the complete version
         # This prevents overwriting the first complete record with a later one 
         if game_id not in gameids_processed:
             if gamedata['complete']:
 
-                day = gamedata['homeTeamInfo']['wins'] + gamedata['homeTeamInfo']['losses']
+                day = games_day[game_id]
+
+                # Ignore postseason
+                if day > 90:
+                    continue
+
+                # FIXME Season 2 Temporal Anomoly Handling
+                if (day not in teamratings[home_id]) or (day not in teamratings[away_id]):
+                    continue
             
                 home_odds = gamedata['homeTeamBetData']['currentOdds']
                 away_odds = gamedata['awayTeamBetData']['currentOdds']
