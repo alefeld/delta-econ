@@ -23,5 +23,10 @@ I want to highlight one person's tool that can help tally your total bets placed
 
 At the time of writing this post, the links don't contain any data, but hopefully they will behave as expected once this unscheduled siesta is over.
 
+## Elections Totals
+The grand total of votes spent in the S2 elections is a bit ambiguous, but overall we can be certain that fewer votes were cast than in S1. The winning Bard umpire got a total of ~165,000 votes. Blessing spending totaled ~1.3 million votes, ranging from ~7,800 to ~315,000 votes per blessing! Since Fact Machine neglected to tell us what percentage of decree votes went to the Bard, we can only surmise that total vote spending for the Season 2 elections ranges from 1.46 million to 1.96 million votes.
+
+For a historical look at election totals, take a look at **Edgarware**'s [NEW Blaseball Election Results](https://lgmbldm.github.io/blaseball-bet-stats/) spreadsheet!
+
 ## That's all for now!
 I'll be back with another blog post before the start of Season 4!
